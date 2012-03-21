@@ -34,8 +34,9 @@ function rabbit_hole_install() {
   // Add our fields to the {node} table.
   $schema['node'] = array();
   rabbit_hole_schema_alter($schema);
+  $ret = array();
   foreach ($schema['node']['fields'] as $name => $spec) {
-    db_add_field('node', $name, $spec);
+    db_add_field($ret, 'node', $name, $spec);
   }
 }
 
@@ -54,7 +55,8 @@ function rabbit_hole_uninstall() {
   // Drop our fields from the {node} table.
   $schema['node'] = array();
   rabbit_hole_schema_alter($schema);
+  $ret = array();
   foreach ($schema['node']['fields'] as $name => $spec) {
-    db_drop_field('node', $name);
+    db_drop_field($ret, 'node', $name);
   }
 }
