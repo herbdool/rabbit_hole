@@ -108,80 +108,78 @@ function rabbit_hole_form_node_type_form_alter(&$form, $form_state) {
  * override the default Rabbit Hole options.
  */
 function rabbit_hole_form_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer rabbit hole')) {
-    // The user doesn't have access.
+  if (!user_access('administer rabbit hole') || strpos($form_id, 'node_form') === FALSE) {
+    // The user doesn't have access, or this isn't a node form.
     return;
   }
-  if (strpos($form_id, 'node_form') !== FALSE) {
-    drupal_add_js(drupal_get_path('module', 'rabbit_hole') . '/rabbit-hole.js', 'theme');
-      drupal_add_js(
-        array(
-          'rabbitHole' => array(
-            'redirectValue' => RABBIT_HOLE_PAGE_REDIRECT
-          )
-        ), 'setting'); 
-    $node = $form['#node'];
-    $form['rabbit_hole'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Rabbit Hole settings'),
-      '#collapsed' => TRUE,
-      '#collapsible' => TRUE,
-      '#group' => 'additional_settings',
-      '#attributes' => array('class' => 'rabbit-hole-settings-form'),
-    );
-    $form['rabbit_hole']['rabbit_hole_action'] = array(
-      '#type' => 'radios',
-      '#title' => t('Behavior'),
-      '#options' => array(
-        RABBIT_HOLE_USE_DEFAULT => t('Content type default'),
-        RABBIT_HOLE_DISPLAY_CONTENT => t('Display the content (regular behavior)'),
-        RABBIT_HOLE_ACCESS_DENIED => t('Access denied'),
-        RABBIT_HOLE_PAGE_NOT_FOUND => t('Page not found'),
-        RABBIT_HOLE_PAGE_REDIRECT => t('Page redirect'),
-      ),
-      '#default_value' => isset($node->rabbit_hole_action) ? $node->rabbit_hole_action : RABBIT_HOLE_USE_DEFAULT,
-      '#description' => t('What should happen when someone tries to visit the node page?'),
-    );
 
-    $form['rabbit_hole']['redirect'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Redirect settings'),
-      '#attributes' => array('class' => 'rabbit-hole-redirect-options'),
-    );
-    
-    $form['rabbit_hole']['redirect']['rabbit_hole_redirect'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Redirect path'),
-      '#size' => 40,
-      '#default_value' => isset($node->rabbit_hole_redirect) ? $node->rabbit_hole_redirect : variable_get('rabbit_hole_redirect_' . $node->type, ''),
-      '#description' => t('The relative path to were the user should be redirected. Leave this empty, or use %front to redirect to the front page.', array('%front' => '<front>')),
-    );
-    // Display a list of tokens if the Token module is enabled.
-    if (module_exists('token')) {
-      $form['rabbit_hole']['redirect']['token_info'] = array(
-        '#theme' => 'token_tree',
-        '#token_types' => array('node'),
-      );
-    }
-    $form['rabbit_hole']['redirect']['rabbit_hole_redirect_response'] = array(
-      '#type' => 'select',
-      '#title' => t('Response code'),
-      '#options' => array(
-        301 => t('301 (Moved Permanently)'),
-        302 => t('302 (Found)'),
-        303 => t('303 (See other)'),
-        304 => t('304 (Not modified)'),
-        305 => t('305 (Use proxy)'),
-        307 => t('307 (Temporary redirect)'),
-      ),
-      '#default_value' => isset($node->rabbit_hole_redirect_response) ? $node->rabbit_hole_redirect_response : variable_get('rabbit_hole_redirect_response_' . $node->type, RABBIT_HOLE_PAGE_REDIRECT_RESPONSE_DEFAULT),
-      '#description' => t('The response code that should be sent to the users browser, e.g. 301. Follow !link for more information on response codes.', array('!link' => l(t('this link'), 'http://api.drupal.org/api/drupal/includes%21common.inc/function/drupal_goto/6'))),
-    );
+  drupal_add_js(drupal_get_path('module', 'rabbit_hole') . '/rabbit-hole.js', 'theme');
+  drupal_add_js(array(
+    'rabbitHole' => array(
+      'redirectValue' => RABBIT_HOLE_PAGE_REDIRECT
+      )
+  ), 'setting');
+  $node = $form['#node'];
+  $form['rabbit_hole'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Rabbit Hole settings'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#group' => 'additional_settings',
+    '#attributes' => array('class' => 'rabbit-hole-settings-form'),
+  );
+  $form['rabbit_hole']['rabbit_hole_action'] = array(
+    '#type' => 'radios',
+    '#title' => t('Behavior'),
+    '#options' => array(
+      RABBIT_HOLE_USE_DEFAULT => t('Content type default'),
+      RABBIT_HOLE_DISPLAY_CONTENT => t('Display the content (regular behavior)'),
+      RABBIT_HOLE_ACCESS_DENIED => t('Access denied'),
+      RABBIT_HOLE_PAGE_NOT_FOUND => t('Page not found'),
+      RABBIT_HOLE_PAGE_REDIRECT => t('Page redirect'),
+    ),
+    '#default_value' => isset($node->rabbit_hole_action) ? $node->rabbit_hole_action : RABBIT_HOLE_USE_DEFAULT,
+    '#description' => t('What should happen when someone tries to visit the node page?'),
+  );
+
+  $form['rabbit_hole']['redirect'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Redirect settings'),
+    '#attributes' => array('class' => 'rabbit-hole-redirect-options'),
+  );
   
-    // Add a custom submit function. This is used to disable the redirect to
-    // node/123 if Rabbit Hole is enabled.
-    $form['buttons']['submit']['#submit'][] = 'rabbit_hole_node_form_submit';
+  $form['rabbit_hole']['redirect']['rabbit_hole_redirect'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Redirect path'),
+    '#size' => 40,
+    '#default_value' => isset($node->rabbit_hole_redirect) ? $node->rabbit_hole_redirect : variable_get('rabbit_hole_redirect_' . $node->type, ''),
+    '#description' => t('The relative path to were the user should be redirected. Leave this empty, or use %front to redirect to the front page.', array('%front' => '<front>')),
+  );
+  // Display a list of tokens if the Token module is enabled.
+  if (module_exists('token')) {
+    $form['rabbit_hole']['redirect']['token_info'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('node'),
+    );
   }
+  $form['rabbit_hole']['redirect']['rabbit_hole_redirect_response'] = array(
+    '#type' => 'select',
+    '#title' => t('Response code'),
+    '#options' => array(
+      301 => t('301 (Moved Permanently)'),
+      302 => t('302 (Found)'),
+      303 => t('303 (See other)'),
+      304 => t('304 (Not modified)'),
+      305 => t('305 (Use proxy)'),
+      307 => t('307 (Temporary redirect)'),
+    ),
+    '#default_value' => isset($node->rabbit_hole_redirect_response) ? $node->rabbit_hole_redirect_response : variable_get('rabbit_hole_redirect_response_' . $node->type, RABBIT_HOLE_PAGE_REDIRECT_RESPONSE_DEFAULT),
+    '#description' => t('The response code that should be sent to the users browser, e.g. 301. Follow !link for more information on response codes.', array('!link' => l(t('this link'), 'http://api.drupal.org/api/drupal/includes%21common.inc/function/drupal_goto/6'))),
+  );
+  
+  // Add a custom submit function. This is used to disable the redirect to
+  // node/123 if Rabbit Hole is enabled.
+  $form['buttons']['submit']['#submit'][] = 'rabbit_hole_node_form_submit';
 }
 
 /**
